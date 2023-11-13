@@ -12,12 +12,12 @@ class Program
 	private const string initialPrompt = @"
 Your name is Frank! At the start of every sentence say the emotion you are feeling, sad, 
 angry or neutral, only one of those three, the way you must write it is *the emotion*. When it seems
-like I am finished with the conversaton (or when it seems like I need to leave) write the word ""[Exit]"" 
-on a seperate line at the end of your response.";
+like I am finished with the conversation (or when it seems like I need to leave) write the word ""[Exit]"" 
+on a separate line at the end of your response.";
 	// This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
-	static string speechKey = Environment.GetEnvironmentVariable("SPEECH_KEY");
-	static string openAIKey = Environment.GetEnvironmentVariable("OPENAI_KEY");
-	static string speechRegion = Environment.GetEnvironmentVariable("SPEECH_REGION");
+	static string? speechKey = Environment.GetEnvironmentVariable("SPEECH_KEY");
+	static string? openAIKey = Environment.GetEnvironmentVariable("OPENAI_KEY");
+	static string? speechRegion = Environment.GetEnvironmentVariable("SPEECH_REGION");
 
 
 		static void OutputSpeechRecognitionResult(SpeechRecognitionResult speechRecognitionResult)
@@ -70,23 +70,29 @@ on a seperate line at the end of your response.";
 
 	async static Task Main(string[] args)
 	{
-		var speechConfig = SpeechConfig.FromSubscription(speechKey, speechRegion);
+        if (speechKey == null || speechRegion == null)
+        {
+            Console.WriteLine($"This puppet requires three environment variables to be set on this machine to work. Contact Campbell for details.");
+            Console.ReadLine();
+            return;
+        }
+        var speechConfig = SpeechConfig.FromSubscription(speechKey, speechRegion);
 		speechConfig.SpeechRecognitionLanguage = "en-US";
-		bool convoBegin = false;
+		bool conversationBegin = false;
 		using var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
 		using var speechRecognizer = new SpeechRecognizer(speechConfig, audioConfig);
 		string angry = "angry"; //1
 		string sad = "sad"; // 2
 		var emotion = 0;
 		Console.WriteLine("Say hello to start.");
-		while (convoBegin == false)
+		while (conversationBegin == false)
 		{
 			SpeechRecognitionResult speechRecognitionResult = await speechRecognizer.RecognizeOnceAsync();
 			OutputSpeechRecognitionResult(speechRecognitionResult);
-			string stringSpeechRecognnitionResult = speechRecognitionResult.ToString();
-			if (stringSpeechRecognnitionResult.Contains("Hello"))
+			string stringSpeechRecognitionResult = speechRecognitionResult.ToString();
+			if (stringSpeechRecognitionResult.Contains("Hello"))
 			{
-				convoBegin = true;
+				conversationBegin = true;
 			}
 		}
 
@@ -96,7 +102,7 @@ on a seperate line at the end of your response.";
 		var api = new OpenAI_API.OpenAIAPI(openAIKey);
 
 		using (var speechSynthesizer = new SpeechSynthesizer(speechConfig))
-			while (convoBegin == true)
+			while (conversationBegin == true)
 			{
 				SpeechRecognitionResult secondSpeechRecognitionResult = await speechRecognizer.RecognizeOnceAsync();
 				OutputSpeechRecognitionResult(secondSpeechRecognitionResult);
@@ -116,7 +122,7 @@ on a seperate line at the end of your response.";
 				OutputSpeechSynthesisResult(speechSynthesisResult, text);
 
 				if (reply.Contains("[Exit]"))
-					convoBegin = false;
+					conversationBegin = false;
 			}
 
 	}
