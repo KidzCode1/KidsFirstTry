@@ -70,7 +70,7 @@ on a separate line at the end of your response.";
 
 	async static Task Main(string[] args)
 	{
-        if (speechKey == null || speechRegion == null)
+        if (speechKey == null || speechRegion == null || openAIKey == null)
         {
             Console.WriteLine($"This puppet requires three environment variables to be set on this machine to work. Contact Campbell for details.");
             Console.ReadLine();
