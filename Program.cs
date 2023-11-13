@@ -11,9 +11,14 @@ class Program
 {
 	private const string initialPrompt = @"
 Your name is Frank! At the start of every sentence say the emotion you are feeling, sad, 
-angry or neutral, only one of those three, the way you must write it is *the emotion*. When it seems
-like I am finished with the conversation (or when it seems like I need to leave) write the word ""[Exit]"" 
-on a separate line at the end of your response.";
+angry or neutral, only one of those three. The emotion should precede your response and be placed 
+in brackets, like [sad] or [angry]. Here is an example:
+
+User: I lost my puppy today.
+You: [sad] Oh no! That's terrible news.
+
+When it seems like I am finished with the conversation (or when it seems like I need to leave) 
+write the word ""[Exit]"" on a separate line at the end of your response.";
 	// This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
 	static string? speechKey = Environment.GetEnvironmentVariable("SPEECH_KEY");
 	static string? openAIKey = Environment.GetEnvironmentVariable("OPENAI_KEY");
@@ -50,7 +55,7 @@ on a separate line at the end of your response.";
 		switch (speechSynthesisResult.Reason)
 		{
 			case ResultReason.SynthesizingAudioCompleted:
-				Console.WriteLine($"Speech synthesized for text: [{text}]");
+				Console.WriteLine($"Speech synthesized for textToSpeak: [{text}]");
 				break;
 			case ResultReason.Canceled:
 				var cancellation = SpeechSynthesisCancellationDetails.FromResult(speechSynthesisResult);
@@ -68,7 +73,22 @@ on a separate line at the end of your response.";
 		}
 	}
 
-	async static Task Main(string[] args)
+    static void GetEmotionFromResult(ref string textToSpeak, out string emotion)
+    {
+        emotion = "";
+        textToSpeak = textToSpeak.Trim();
+        if (textToSpeak.StartsWith("["))
+        {
+            int indexOfClosingBracket = textToSpeak.IndexOf(']');
+            if (indexOfClosingBracket > 0 && indexOfClosingBracket < textToSpeak.Length - 1)
+            {
+                emotion = textToSpeak.Substring(1, indexOfClosingBracket - 1);
+                textToSpeak = textToSpeak.Substring(indexOfClosingBracket + 1).Trim();
+            }
+        }
+    }
+
+    async static Task Main(string[] args)
 	{
         if (speechKey == null || speechRegion == null || openAIKey == null)
         {
@@ -78,21 +98,18 @@ on a separate line at the end of your response.";
         }
         var speechConfig = SpeechConfig.FromSubscription(speechKey, speechRegion);
 		speechConfig.SpeechRecognitionLanguage = "en-US";
-		bool conversationBegin = false;
+		bool conversationActive = false;
 		using var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
 		using var speechRecognizer = new SpeechRecognizer(speechConfig, audioConfig);
-		string angry = "angry"; //1
-		string sad = "sad"; // 2
-		var emotion = 0;
 		Console.WriteLine("Say hello to start.");
-		while (conversationBegin == false)
+		while (conversationActive == false)
 		{
 			SpeechRecognitionResult speechRecognitionResult = await speechRecognizer.RecognizeOnceAsync();
 			OutputSpeechRecognitionResult(speechRecognitionResult);
 			string stringSpeechRecognitionResult = speechRecognitionResult.ToString();
 			if (stringSpeechRecognitionResult.Contains("Hello"))
 			{
-				conversationBegin = true;
+				conversationActive = true;
 			}
 		}
 
@@ -102,7 +119,7 @@ on a separate line at the end of your response.";
 		var api = new OpenAI_API.OpenAIAPI(openAIKey);
 
 		using (var speechSynthesizer = new SpeechSynthesizer(speechConfig))
-			while (conversationBegin == true)
+			while (conversationActive == true)
 			{
 				SpeechRecognitionResult secondSpeechRecognitionResult = await speechRecognizer.RecognizeOnceAsync();
 				OutputSpeechRecognitionResult(secondSpeechRecognitionResult);
@@ -110,19 +127,17 @@ on a separate line at the end of your response.";
 
 				var reply = result.ToString();
 				Console.WriteLine(result);
-				if (reply.Contains(angry) == true)
-					emotion = 1;
-				else if (reply.Contains(sad) == true)
-					emotion = 2;
-				else
-					emotion = 0;
-				string text = reply;
+				
+				string textToSpeak = reply;
 
-				var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(text);
-				OutputSpeechSynthesisResult(speechSynthesisResult, text);
+                GetEmotionFromResult(ref textToSpeak, out string emotion);
+                // TODO: Do something with the emotion.
+
+                var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(textToSpeak);
+                OutputSpeechSynthesisResult(speechSynthesisResult, textToSpeak);
 
 				if (reply.Contains("[Exit]"))
-					conversationBegin = false;
+					conversationActive = false;
 			}
 
 	}
