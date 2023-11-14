@@ -23,6 +23,18 @@ public class SpeechHelper
         using var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
         speechRecognizer = new SpeechRecognizer(speechConfig, audioConfig);
         speechSynthesizer = CreateSynthesizer();
+        speechSynthesizer.WordBoundary += (s, e) =>
+        {
+            Console.WriteLine($"\t\"{e.Text}\" ({e.Duration})");
+            //Console.WriteLine($"\r\nWordBoundary event:" +
+            //    // Word, Punctuation, or Sentence
+            //    $"\r\n\tBoundaryType: {e.BoundaryType}" +
+            //    $"\r\n\tAudioOffset: {(e.AudioOffset + 5000) / 10000}ms" +
+            //    $"\r\n\tDuration: {e.Duration}" +
+            //    $"\r\n\tText: \"{e.Text}\"" +
+            //    $"\r\n\tTextOffset: {e.TextOffset}" +
+            //    $"\r\n\tWordLength: {e.WordLength}\r\n");
+        };
     }
     public bool ConversationActive { get; set; }
 
