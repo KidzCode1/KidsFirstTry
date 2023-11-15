@@ -14,4 +14,8 @@ public class Puppet
     {
 
     }
+    public string GetInitialPrompt()
+    {
+        return Prompts.Initial;
+    }
 }

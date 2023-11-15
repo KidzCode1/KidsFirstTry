@@ -55,11 +55,6 @@ public static class ConsoleHelper
         }
     }
 
-    public static void GiveStartingInstructions()
-    {
-        Console.WriteLine("Say \"hello\" to start.");
-    }
-
     public static void StartConversation()
     {
         Console.WriteLine("Starting conversation...");

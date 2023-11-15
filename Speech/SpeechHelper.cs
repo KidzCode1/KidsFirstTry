@@ -47,7 +47,7 @@ public class SpeechHelper
 
     public async Task WaitUntilWeHear(string phrase)
     {
-        ConsoleHelper.GiveStartingInstructions();
+        Console.WriteLine($"Say \"{phrase}\" to resume.");
 
         while (true)
         {

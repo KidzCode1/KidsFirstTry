@@ -3,9 +3,11 @@ using System;
 using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Models;
-
 public class OpenAiHelper
 {
+    
+    Queue<ChatEntry> chatEntries = new Queue<ChatEntry>();
+
     OpenAIAPI api;
     readonly Puppet puppet;
     public Emotions Emotion { get; set; }
@@ -20,20 +22,42 @@ public class OpenAiHelper
         return $"Your name is {puppet.Name}! ";
     }
 
-    public ChatRequest GetChatRequest(string prompt)
+    public ChatRequest GetChatRequest(string userPrompt)
     {
         ChatRequest chatRequest = new ChatRequest()
         {
-
-            Model = Model.ChatGPTTurbo,
-            Temperature = 0.5,
+            Model = Model.GPT4,
+            Temperature = 0.8,
             MaxTokens = 500,
-            Messages = new ChatMessage[] {
-            new ChatMessage(ChatMessageRole.User, GetName() + Prompts.Initial),
-            new ChatMessage(ChatMessageRole.User, prompt),
-            }
+            Messages = BuildChatHistory(userPrompt)
         };
         return chatRequest;
+    }
+
+    public void AddPuppetResponseToChatHistory(string reply)
+    {
+        chatEntries.Enqueue(new ChatEntry(ChatMessageRole.Assistant, reply));
+    }
+
+    private ChatMessage[] BuildChatHistory(string userPrompt)
+    {
+        chatEntries.Enqueue(new ChatEntry(ChatMessageRole.User, userPrompt));
+        
+        while (chatEntries.Count > Constants.MaxChatEntries)
+            chatEntries.Dequeue();
+
+        ChatMessage[] result = new ChatMessage[chatEntries.Count + 1];
+
+        result[0] = new ChatMessage(ChatMessageRole.User, GetName() + puppet.GetInitialPrompt());
+        int index = 1;
+
+        foreach (ChatEntry chatEntry in chatEntries)
+        {
+            result[index] = new ChatMessage(chatEntry.Role, chatEntry.Message);
+            index++;
+        }
+
+        return result;
     }
 
     Emotions GetEmotionFromString(string emotion)
@@ -53,6 +77,8 @@ public class OpenAiHelper
 
         string textToSpeak = result.ToString();
         textToSpeak = ProcessEmotion(textToSpeak);
+
+        AddPuppetResponseToChatHistory(textToSpeak);
 
         return textToSpeak;
     }
