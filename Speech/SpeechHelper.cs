@@ -14,43 +14,49 @@ public class SpeechHelper
     SpeechConfig speechConfig;
     SpeechRecognizer speechRecognizer;
     SpeechSynthesizer speechSynthesizer;
+    readonly Puppet puppet;
 
-    public SpeechHelper()
+    public SpeechHelper(Puppet puppet)
     {
+        this.puppet = puppet;
         speechConfig = SpeechConfig.FromSubscription(ApiKeys.Speech, ApiKeys.SpeechRegion);
         speechConfig.SpeechRecognitionLanguage = STR_RecognitionLanguageName;
         speechConfig.SpeechSynthesisVoiceName = STR_SynthesisVoiceName;
         using var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
         speechRecognizer = new SpeechRecognizer(speechConfig, audioConfig);
         speechSynthesizer = CreateSynthesizer();
-        speechSynthesizer.WordBoundary += (s, e) =>
-        {
-            Console.WriteLine($"\t\"{e.Text}\" ({e.Duration})");
-            //Console.WriteLine($"\r\nWordBoundary event:" +
-            //    // Word, Punctuation, or Sentence
-            //    $"\r\n\tBoundaryType: {e.BoundaryType}" +
-            //    $"\r\n\tAudioOffset: {(e.AudioOffset + 5000) / 10000}ms" +
-            //    $"\r\n\tDuration: {e.Duration}" +
-            //    $"\r\n\tText: \"{e.Text}\"" +
-            //    $"\r\n\tTextOffset: {e.TextOffset}" +
-            //    $"\r\n\tWordLength: {e.WordLength}\r\n");
-        };
+        speechSynthesizer.WordBoundary += SpeechSynthesizer_WordBoundary;
     }
+
+    private void SpeechSynthesizer_WordBoundary(object? sender, SpeechSynthesisWordBoundaryEventArgs e)
+    {
+        // TODO: Move the mouth in sync with the spoken words.
+        //Console.WriteLine($"\t\"{e.Text}\" ({e.Duration})");
+
+        //Console.WriteLine($"\r\nWordBoundary event:" +
+        //    // Word, Punctuation, or Sentence
+        //    $"\r\n\tBoundaryType: {e.BoundaryType}" +
+        //    $"\r\n\tAudioOffset: {(e.AudioOffset + 5000) / 10000}ms" +
+        //    $"\r\n\tDuration: {e.Duration}" +
+        //    $"\r\n\tText: \"{e.Text}\"" +
+        //    $"\r\n\tTextOffset: {e.TextOffset}" +
+        //    $"\r\n\tWordLength: {e.WordLength}\r\n");
+    }
+
     public bool ConversationActive { get; set; }
 
-    public async Task WaitUntilWeHearHello()
+    public async Task WaitUntilWeHear(string phrase)
     {
         ConsoleHelper.GiveStartingInstructions();
 
-        while (!ConversationActive)
+        while (true)
         {
             SpeechRecognitionResult speechRecognitionResult = await speechRecognizer.RecognizeOnceAsync();
             ConsoleHelper.OutputSpeechRecognitionResult(speechRecognitionResult);
             string recognitionResult = speechRecognitionResult.ToString();
-            ConversationActive = recognitionResult.Contains("hello", StringComparison.InvariantCultureIgnoreCase);
+            if (recognitionResult.Contains(phrase, StringComparison.InvariantCultureIgnoreCase))
+                return;
         }
-
-        ConsoleHelper.StartConversation();
     }
 
     SpeechSynthesizer CreateSynthesizer()
@@ -67,8 +73,9 @@ public class SpeechHelper
 
     public async Task<SpeechSynthesisResult> SpeakAsync(string reply)
     {
+        ConsoleHelper.PuppetSays(puppet, reply);
         SpeechSynthesisResult speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(reply);
-        ConsoleHelper.OutputSpeechSynthesisResult(speechSynthesisResult, reply);
+        ConsoleHelper.OutputSpeechSynthesisResult(speechSynthesisResult);
         return speechSynthesisResult;
     }
 

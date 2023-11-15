@@ -7,10 +7,17 @@ using OpenAI_API.Models;
 public class OpenAiHelper
 {
     OpenAIAPI api;
+    readonly Puppet puppet;
     public Emotions Emotion { get; set; }
-    public OpenAiHelper()
+    public OpenAiHelper(Puppet puppet)
     {
+        this.puppet = puppet;
         api = new OpenAIAPI(ApiKeys.OpenAI);
+    }
+
+    string GetName()
+    {
+        return $"Your name is {puppet.Name}! ";
     }
 
     public ChatRequest GetChatRequest(string prompt)
@@ -22,7 +29,7 @@ public class OpenAiHelper
             Temperature = 0.5,
             MaxTokens = 500,
             Messages = new ChatMessage[] {
-            new ChatMessage(ChatMessageRole.User, Prompts.Initial),
+            new ChatMessage(ChatMessageRole.User, GetName() + Prompts.Initial),
             new ChatMessage(ChatMessageRole.User, prompt),
             }
         };
@@ -40,18 +47,21 @@ public class OpenAiHelper
         }
     }
 
-    public async Task<string> GetReplyAsync(OpenAiHelper openAiHelper, string prompt)
+    public async Task<string> GetReplyAsync(string prompt)
     {
-        var result = await api.Chat.CreateChatCompletionAsync(openAiHelper.GetChatRequest(prompt));
-        
-        Console.WriteLine(result);
+        var result = await api.Chat.CreateChatCompletionAsync(GetChatRequest(prompt));
 
         string textToSpeak = result.ToString();
+        textToSpeak = ProcessEmotion(textToSpeak);
 
+        return textToSpeak;
+    }
+
+    public string ProcessEmotion(string textToSpeak)
+    {
         EmotionHelper.GetEmotionFromResult(ref textToSpeak, out string emotion);
 
         Emotion = GetEmotionFromString(emotion);
-
         return textToSpeak;
     }
 }

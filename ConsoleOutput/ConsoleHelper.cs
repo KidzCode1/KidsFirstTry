@@ -4,19 +4,17 @@ using Microsoft.CognitiveServices.Speech;
 
 public static class ConsoleHelper
 {
+    public static bool Enabled { get; set; }
     public static void SayGoodbye()
     {
         Console.WriteLine("Goodbye! (press Enter to close this window)");
         Console.ReadLine();
     }
 
-    public static void OutputSpeechSynthesisResult(SpeechSynthesisResult speechSynthesisResult, string text)
+    public static void OutputSpeechSynthesisResult(SpeechSynthesisResult speechSynthesisResult)
     {
         switch (speechSynthesisResult.Reason)
         {
-            case ResultReason.SynthesizingAudioCompleted:
-                Console.WriteLine($"Speech synthesized for textToSpeak: [{text}]");
-                break;
             case ResultReason.Canceled:
                 var cancellation = SpeechSynthesisCancellationDetails.FromResult(speechSynthesisResult);
                 Console.WriteLine($"CANCELED: Reason={cancellation.Reason}");
@@ -38,7 +36,7 @@ public static class ConsoleHelper
         switch (speechRecognitionResult.Reason)
         {
             case ResultReason.RecognizedSpeech:
-                Console.WriteLine($"RECOGNIZED: Text={speechRecognitionResult.Text}");
+                Console.WriteLine($"You: {speechRecognitionResult.Text}");
                 break;
             case ResultReason.NoMatch:
                 Console.WriteLine($"NOMATCH: Speech could not be recognized.");
@@ -65,5 +63,10 @@ public static class ConsoleHelper
     public static void StartConversation()
     {
         Console.WriteLine("Starting conversation...");
+    }
+
+    public static void PuppetSays(Puppet puppet, string reply)
+    {
+        Console.WriteLine($"{puppet.Name}: {reply}");
     }
 }
