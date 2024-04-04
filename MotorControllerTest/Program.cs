@@ -8,11 +8,7 @@ namespace MotorControllerTest
         static string? lastErrorMessage;
         static async Task Main(string[] args)
         {
-            motorController.BoardIsOffline += MotorController_BoardIsOffline;
-            motorController.BoardIsOnline += MotorController_BoardIsOnline;
-            motorController.CommunicationSuccess += MotorController_CommunicationSuccess;
-            motorController.CommunicationError += MotorController_CommunicationError;
-            motorController.ExceptionThrown += MotorController_ExceptionThrown;
+            InitializeMotorController();
             Console.WriteLine("Hello, World!");
             while (true)
             {
@@ -35,6 +31,15 @@ namespace MotorControllerTest
             }
             motorController.Close();
             //await Task.Delay(TimeSpan.FromHours(3));
+        }
+
+        private static void InitializeMotorController()
+        {
+            motorController.BoardIsOffline += MotorController_BoardIsOffline;
+            motorController.BoardIsOnline += MotorController_BoardIsOnline;
+            motorController.CommunicationSuccess += MotorController_CommunicationSuccess;
+            motorController.CommunicationError += MotorController_CommunicationError;
+            motorController.ExceptionThrown += MotorController_ExceptionThrown;
         }
 
         private static void MotorController_ExceptionThrown(object? sender, Exception e)

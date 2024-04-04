@@ -67,6 +67,8 @@ public class SpeechHelper
     public async Task<string> GetSpokenWordsAsync()
     {
         SpeechRecognitionResult speechRecognitionResult = await speechRecognizer.RecognizeOnceAsync();
+        if (speechRecognitionResult.Reason == ResultReason.NoMatch)
+            return string.Empty;
         ConsoleHelper.OutputSpeechRecognitionResult(speechRecognitionResult);
         return speechRecognitionResult.Text;
     }
