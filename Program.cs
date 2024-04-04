@@ -25,6 +25,9 @@ class Program
         while (true)
         {
             string spokenWords = await speechHelper.GetSpokenWordsAsync();
+            if (string.IsNullOrEmpty(spokenWords))
+                continue;
+
             string reply = await openAiHelper.GetReplyAsync(spokenWords);
 
             await speechHelper.SpeakAsync(reply);
