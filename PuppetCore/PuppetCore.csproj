@@ -18,7 +18,6 @@
   <ItemGroup>
     <Reference Include="UsbLibrary">
       <HintPath>Lib\UsbLibrary.dll</HintPath>
-      <Private>False</Private>
     </Reference>
   </ItemGroup>
 
