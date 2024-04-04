@@ -10,10 +10,6 @@ public class Puppet
         Name = name;
     }
 
-    public Puppet()
-    {
-
-    }
     public string GetInitialPrompt()
     {
         return Prompts.Initial;

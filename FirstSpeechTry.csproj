@@ -2,16 +2,22 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="16ChannelServoMotorControllerSampleCode\**" />
+    <Compile Remove="MotorControllerTest\**" />
     <Compile Remove="MotorControl\**" />
     <Compile Remove="PuppetCore\**" />
+    <EmbeddedResource Remove="16ChannelServoMotorControllerSampleCode\**" />
+    <EmbeddedResource Remove="MotorControllerTest\**" />
     <EmbeddedResource Remove="MotorControl\**" />
     <EmbeddedResource Remove="PuppetCore\**" />
+    <None Remove="16ChannelServoMotorControllerSampleCode\**" />
+    <None Remove="MotorControllerTest\**" />
     <None Remove="MotorControl\**" />
     <None Remove="PuppetCore\**" />
   </ItemGroup>
