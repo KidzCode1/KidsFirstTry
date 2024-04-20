@@ -18,15 +18,30 @@ public class ServoMotorController
     Message message;
     public byte OnlineBoard = 0;
     CancellationTokenSource portDetectCancellationTokenSource = new CancellationTokenSource();
-    Thread PortDetectThread;
+    Task PortDetectTask;
     bool PortStop = true;
     byte[] rxBuffer = new byte[1000];
     ushort rxCount = 0;
     SerialPort serialPort = null!;
     ushort totalLength = 5;
-    UsbWindowMessageListener usbWindowMessageListener;
+    UsbWindowMessageListener? usbWindowMessageListener;
 
     public ServoMotorController()
+    {
+        //Form form = new Form();
+        //form.Show();
+        CreateUsbWindowMessageListener();
+        checkBoardStatusTimer = new System.Timers.Timer(500);
+        checkBoardStatusTimer.Elapsed += CheckBoardStatusTimer_Elapsed;
+        checkBoardStatusTimer.Start();
+        PortDetectTask = Task.Run(async () => { await SetPort(portDetectCancellationTokenSource.Token); }, portDetectCancellationTokenSource.Token);
+
+        //PortDetectThread.Start(); //启动线程
+        CreateSerialPort();
+        PortStop = false;
+    }
+
+    private void CreateUsbWindowMessageListener()
     {
         usbWindowMessageListener = new UsbWindowMessageListener();
         usbWindowMessageListener.OnMotorControllerConnected += UsbWindowMessageListener_OnMotorControllerConnected;
@@ -34,13 +49,6 @@ public class ServoMotorController
         usbWindowMessageListener.OnDataReceived += UsbWindowMessageListener_OnDataReceived;
         usbWindowMessageListener.Visible = false;
         usbWindowMessageListener.Show();
-        checkBoardStatusTimer = new System.Timers.Timer(500);
-        checkBoardStatusTimer.Elapsed += CheckBoardStatusTimer_Elapsed;
-        checkBoardStatusTimer.Start();
-        PortDetectThread = new Thread(() => SetPort(portDetectCancellationTokenSource.Token));
-        PortDetectThread.Start(); //启动线程
-        CreateSerialPort();
-        PortStop = false;
     }
 
     void ByteCopy(byte[] fromArray, byte[] toArray, ushort fromIndex, ushort toIndex, ushort length)
@@ -148,7 +156,7 @@ public class ServoMotorController
     {
         try
         {
-            if (usbWindowMessageListener.SpecifiedDevice != null)
+            if (usbWindowMessageListener?.SpecifiedDevice != null)
             {
                 byte[] byteUSB = new byte[0x43];
                 byteUSB[1] = ucLength;
@@ -239,11 +247,11 @@ public class ServoMotorController
         }
     }
 
-    void SetPort(CancellationToken token)
+    Task SetPort(CancellationToken token)
     {
         while (!token.IsCancellationRequested)
         {
-            Thread.Sleep(500);
+            Task.Delay(500);
             if (PortStop || token.IsCancellationRequested)
                 continue;
             if (serialPort.IsOpen == false)
@@ -260,6 +268,7 @@ public class ServoMotorController
             } else
                 OnlineBoard |= 0x01;
         }
+        return Task.CompletedTask;
     }
 
     void UsbWindowMessageListener_OnDataReceived(object sender, DataRecievedEventArgs args)

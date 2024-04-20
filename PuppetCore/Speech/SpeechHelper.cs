@@ -16,6 +16,10 @@ public class SpeechHelper
     SpeechSynthesizer speechSynthesizer;
     readonly Puppet puppet;
 
+    public event EventHandler<SpeechSynthesisWordBoundaryEventArgs>? WordBoundaryReached;
+    public event EventHandler<SpeechSynthesisEventArgs>? SpeechSynthesisCompleted;
+    public event EventHandler<SpeechSynthesisEventArgs>? SpeechSynthesisCanceled;
+
     public SpeechHelper(Puppet puppet)
     {
         this.puppet = puppet;
@@ -26,21 +30,18 @@ public class SpeechHelper
         speechRecognizer = new SpeechRecognizer(speechConfig, audioConfig);
         speechSynthesizer = CreateSynthesizer();
         speechSynthesizer.WordBoundary += SpeechSynthesizer_WordBoundary;
+        speechSynthesizer.SynthesisCompleted += SpeechSynthesizer_SynthesisCompleted;
+        speechSynthesizer.SynthesisCanceled += SpeechSynthesizer_SynthesisCanceled;
+    }
+
+    protected virtual void OnWordBoundaryReached(object? sender, SpeechSynthesisWordBoundaryEventArgs e)
+    {
+        WordBoundaryReached?.Invoke(sender, e);
     }
 
     private void SpeechSynthesizer_WordBoundary(object? sender, SpeechSynthesisWordBoundaryEventArgs e)
     {
-        // TODO: Move the mouth in sync with the spoken words.
-        //Console.WriteLine($"\t\"{e.Text}\" ({e.Duration})");
-
-        //Console.WriteLine($"\r\nWordBoundary event:" +
-        //    // Word, Punctuation, or Sentence
-        //    $"\r\n\tBoundaryType: {e.BoundaryType}" +
-        //    $"\r\n\tAudioOffset: {(e.AudioOffset + 5000) / 10000}ms" +
-        //    $"\r\n\tDuration: {e.Duration}" +
-        //    $"\r\n\tText: \"{e.Text}\"" +
-        //    $"\r\n\tTextOffset: {e.TextOffset}" +
-        //    $"\r\n\tWordLength: {e.WordLength}\r\n");
+        OnWordBoundaryReached(sender, e);   
     }
 
     public bool ConversationActive { get; set; }
@@ -76,9 +77,18 @@ public class SpeechHelper
     public async Task<SpeechSynthesisResult> SpeakAsync(string reply)
     {
         ConsoleHelper.PuppetSays(puppet, reply);
-        SpeechSynthesisResult speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(reply);
+        SpeechSynthesisResult speechSynthesisResult = await speechSynthesizer.StartSpeakingTextAsync(reply);
         ConsoleHelper.OutputSpeechSynthesisResult(speechSynthesisResult);
         return speechSynthesisResult;
     }
 
+    void SpeechSynthesizer_SynthesisCompleted(object? sender, SpeechSynthesisEventArgs e)
+    {
+        SpeechSynthesisCompleted?.Invoke(sender, e);
+    }
+
+    void SpeechSynthesizer_SynthesisCanceled(object? sender, SpeechSynthesisEventArgs e)
+    {
+        SpeechSynthesisCanceled?.Invoke(sender, e);
+    }
 }

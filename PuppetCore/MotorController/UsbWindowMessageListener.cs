@@ -42,7 +42,6 @@ public class UsbWindowMessageListener : Form
         ShowInTaskbar = false;
         FormBorderStyle = FormBorderStyle.None;
         Load += UsbWindowMessageListener_Load;
-
     }
 
     private void UsbWindowMessageListener_Load(object? sender, EventArgs e)

@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -12,14 +13,20 @@
     <Compile Remove="MotorControllerTest\**" />
     <Compile Remove="MotorControl\**" />
     <Compile Remove="PuppetCore\**" />
+    <Compile Remove="SecondTryWinForms\**" />
+    <Compile Remove="ThirdTryWinForms\**" />
     <EmbeddedResource Remove="16ChannelServoMotorControllerSampleCode\**" />
     <EmbeddedResource Remove="MotorControllerTest\**" />
     <EmbeddedResource Remove="MotorControl\**" />
     <EmbeddedResource Remove="PuppetCore\**" />
+    <EmbeddedResource Remove="SecondTryWinForms\**" />
+    <EmbeddedResource Remove="ThirdTryWinForms\**" />
     <None Remove="16ChannelServoMotorControllerSampleCode\**" />
     <None Remove="MotorControllerTest\**" />
     <None Remove="MotorControl\**" />
     <None Remove="PuppetCore\**" />
+    <None Remove="SecondTryWinForms\**" />
+    <None Remove="ThirdTryWinForms\**" />
   </ItemGroup>
 
   <ItemGroup>
